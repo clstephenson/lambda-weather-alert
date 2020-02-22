@@ -1,0 +1,28 @@
+os: linux
+language: java
+jdk: openjdk8
+
+script:
+  - mvn clean package
+  - mv ./target/lambda-weather-alert*.jar ./lambda-weather-alert.jar
+
+deploy:
+  on:
+    branch: master
+  edge: true
+  provider: lambda
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
+  region: us-east-1
+  function_name: freeze-alert
+  handler_name: handleRequest
+  timeout: 15
+  memory_size: 512
+  runtime: java8
+  description: 'Sends a weather alert messages.'
+  zip: ./lambda-weather-alert.jar
+  environment:
+    - 'LATITUDE=33.70777628973998'
+    - 'LONGITUDE=-111.91360473632812'
+    - 'LOW_TEMP_THRESHOLD=39'
+    - 'SNS_TOPIC=arn:aws:sns:us-east-1:106969650618:Cold_Weather_Warning'
