@@ -15,7 +15,7 @@ deploy:
   secret_access_key: $AWS_SECRET_KEY
   region: us-east-1
   function_name: freeze-alert
-  handler_name: handleRequest
+  handler_name: 'com.clstephenson.lambdaweatheralert.LambdaWeatherAlert::handleRequest'
   timeout: 15
   memory_size: 512
   runtime: java8
