@@ -1,5 +1,5 @@
 
-package com.clstephenson.lambdaweatheralert.nwsapi.point;
+package com.clstephenson.lambdaweatheralert.weatherapi.nws.point;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
