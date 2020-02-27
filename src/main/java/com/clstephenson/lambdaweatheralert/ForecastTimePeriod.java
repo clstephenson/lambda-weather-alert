@@ -1,6 +1,6 @@
 package com.clstephenson.lambdaweatheralert;
 
-public enum ForcastTimePeriod {
+public enum ForecastTimePeriod {
 
     TODAY ("today"),
     TONIGHT ("tonight"),
@@ -8,7 +8,7 @@ public enum ForcastTimePeriod {
 
     private final String text;
 
-    ForcastTimePeriod(String text) {
+    ForecastTimePeriod(String text) {
         this.text = text;
     }
 

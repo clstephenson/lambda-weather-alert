@@ -1,6 +1,6 @@
 package com.clstephenson.lambdaweatheralert.weatherapi.nws;
 
-import com.clstephenson.lambdaweatheralert.ForcastTimePeriod;
+import com.clstephenson.lambdaweatheralert.ForecastTimePeriod;
 import com.clstephenson.lambdaweatheralert.Location;
 import com.clstephenson.lambdaweatheralert.weatherapi.WeatherSource;
 import com.clstephenson.lambdaweatheralert.weatherapi.nws.forecast.Forecast;
@@ -31,7 +31,7 @@ public class NWSSource implements WeatherSource {
         List<Period> periodList = forecast.getProperties().getPeriods();
         Period period = periodList
                 .stream()
-                .filter(item -> item.getName().equalsIgnoreCase(ForcastTimePeriod.TONIGHT.toString()))
+                .filter(item -> item.getName().equalsIgnoreCase(ForecastTimePeriod.TONIGHT.toString()))
                 .findFirst()
                 .get();
         return period.getTemperature();
