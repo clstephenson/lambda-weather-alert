@@ -25,5 +25,4 @@ deploy:
   environment:
     - 'LATITUDE=33.70777628973998'
     - 'LONGITUDE=-111.91360473632812'
-    - 'LOW_TEMP_THRESHOLD=39'
     - 'SNS_TOPIC=arn:aws:sns:us-east-1:106969650618:Cold_Weather_Warning'
