@@ -1,4 +1,5 @@
-# lambda-weather-alert
+# lambda-weather-alert [![Build Status](https://travis-ci.org/clstephenson/lambda-weather-alert.svg?branch=master)](https://travis-ci.org/clstephenson/lambda-weather-alert)
+
 AWS Lambda function that uses the weather.gov API and send me daily weather information in an SMS message.
 
 ## Purpose
