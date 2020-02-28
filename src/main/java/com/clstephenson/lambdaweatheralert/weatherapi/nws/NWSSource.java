@@ -25,13 +25,22 @@ public class NWSSource implements WeatherSource {
 
     @Override
     public int getLowTemperatureForTonight() {
+        return getFutureTemperatureFromApi(ForecastTimePeriod.TONIGHT);
+    }
+
+    @Override
+    public int getHighTempForToday() {
+        return getFutureTemperatureFromApi(ForecastTimePeriod.TODAY);
+    }
+
+    private int getFutureTemperatureFromApi(ForecastTimePeriod timePeriod) {
         restClient = ClientBuilder.newClient();
         Point point = getPointDataFromAPI();
         Forecast forecast = getForecastDataFromAPI(point.getProperties().getForecast());
         List<Period> periodList = forecast.getProperties().getPeriods();
         Period period = periodList
                 .stream()
-                .filter(item -> item.getName().equalsIgnoreCase(ForecastTimePeriod.TONIGHT.toString()))
+                .filter(item -> item.getName().equalsIgnoreCase(timePeriod.toString()))
                 .findFirst()
                 .get();
         return period.getTemperature();

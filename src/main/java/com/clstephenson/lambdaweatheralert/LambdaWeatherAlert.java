@@ -4,31 +4,28 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.ScheduledEvent;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
-import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sns.model.PublishResult;
+import com.clstephenson.lambdaweatheralert.weatherapi.WeatherSource;
 import com.clstephenson.lambdaweatheralert.weatherapi.WeatherSourceFactory;
 
 public class LambdaWeatherAlert implements RequestHandler<ScheduledEvent, Void> {
 
-    // environment variable names configured on AWS Lambda function
-    private static final String ENV_VAR_LOW_TEMP_THRESHOLD = "LOW_TEMP_THRESHOLD";
-    private static final String ENV_VAR_LATITUDE = "LATITUDE"; //environment variable specifying latitude
-    private static final String ENV_VAR_LONGITUDE = "LONGITUDE"; //environment variable specifying longitude
-    private static final String ENV_VAR_SNS_TOPIC_ARN = "SNS_TOPIC";
+    private static final String MESSAGE_TEXT = "It will be %d degrees today with a low tonight of %d.";
+    private static final String ERROR_TEXT = "LambdaWeatherAlert request failed:\n%s\n";
 
-    // Strings used in messages
-    private static final String MESSAGE_TEXT = "It will be %d degrees tonight!";
-    private static final String NO_WARNINGS_TEXT = "No weather warnings to publish.";
-
+    private static final String SnsTopicArn;
+    private static final String latitude;
+    private static final String longitude;
     private static Location location;
+    private static WeatherSource weatherSource;
 
     static {
-        location = Location.getLocationFromCoordinates(
-                System.getenv(ENV_VAR_LATITUDE),
-                System.getenv(ENV_VAR_LONGITUDE)
-        );
+        SnsTopicArn = System.getenv("SNS_TOPIC");
+        latitude = System.getenv("LATITUDE");
+        longitude = System.getenv("LONGITUDE");
+
+        location = Location.getLocationFromCoordinates(latitude, longitude);
+
+        weatherSource = WeatherSourceFactory.getWeatherSourceAtLocation(location);
     }
 
     /**
@@ -39,17 +36,12 @@ public class LambdaWeatherAlert implements RequestHandler<ScheduledEvent, Void> 
      */
     public static void main(String[] args) {
         try {
-            int lowTemp = WeatherSourceFactory
-                    .getWeatherSourceAtLocation(location)
-                    .getLowTemperatureForTonight();
-            if (lowTemp < Integer.parseInt(System.getenv(ENV_VAR_LOW_TEMP_THRESHOLD))) {
-                System.out.println(String.format(MESSAGE_TEXT, lowTemp));
-            } else {
-                System.out.println(NO_WARNINGS_TEXT);
-            }
+            int lowTemp = weatherSource.getLowTemperatureForTonight();
+            int highTemp = weatherSource.getHighTempForToday();
+            System.out.println(String.format(MESSAGE_TEXT, highTemp, lowTemp));
         } catch (Exception e) {
-            System.err.println("LambdaWeatherAlert request failed.");
-            System.err.println("Message: " + e.getMessage());
+            System.err.printf(ERROR_TEXT, e.getMessage());
+            System.out.println();
             e.printStackTrace();
         }
     }
@@ -63,19 +55,23 @@ public class LambdaWeatherAlert implements RequestHandler<ScheduledEvent, Void> 
      */
     public Void handleRequest(ScheduledEvent event, Context context) {
         LambdaLogger logger = context.getLogger();
+        SnsMessagePublisher messagePublisher = SnsMessagePublisher.getPublisher(SnsTopicArn);
+
         try {
-            int lowTemp = WeatherSourceFactory
-                    .getWeatherSourceAtLocation(location)
-                    .getLowTemperatureForTonight();
-            if (lowTemp < Integer.parseInt(System.getenv(ENV_VAR_LOW_TEMP_THRESHOLD))) {
-                String SNSTopicARN = System.getenv(ENV_VAR_SNS_TOPIC_ARN);
-                logger.log(String.format("Publishing message to SNS topic: %s", SNSTopicARN));
-                String messageId = publishToSNSTopic(SNSTopicARN, String.format(MESSAGE_TEXT, lowTemp));
-                logger.log(String.format("SNS message ID: %s", messageId));
-            } else {
-                logger.log(NO_WARNINGS_TEXT);
-            }
+            int lowTemp = weatherSource.getLowTemperatureForTonight();
+            int highTemp = weatherSource.getHighTempForToday();
+
+            logger.log(String.format("Publishing message to SNS topic: %s", SnsTopicArn));
+            String messageId = messagePublisher.publish(String.format(MESSAGE_TEXT, highTemp, lowTemp));
+            logger.log(String.format("SNS message ID: %s", messageId));
+
+        } catch (SnsMessagePublisherException e) {
+            logger.log("LambdaWeatherAlert request failed.");
+            logger.log("Function name: " + context.getFunctionName());
+            logger.log("Message: " + e.getMessage());
+            e.printStackTrace();
         } catch (Exception e) {
+            messagePublisher.publish(String.format(ERROR_TEXT, e.getMessage()));
             logger.log("LambdaWeatherAlert request failed.");
             logger.log("Function name: " + context.getFunctionName());
             logger.log("Message: " + e.getMessage());
@@ -84,12 +80,5 @@ public class LambdaWeatherAlert implements RequestHandler<ScheduledEvent, Void> 
         return null;
     }
 
-    private String publishToSNSTopic(String topicARN, String message) {
-        AmazonSNS SNSClient = AmazonSNSClientBuilder.defaultClient();
-        PublishRequest publishRequest = new PublishRequest()
-                .withTopicArn(topicARN)
-                .withMessage(message);
-        PublishResult publishResult = SNSClient.publish(publishRequest);
-        return publishResult.getMessageId();
-    }
+
 }
