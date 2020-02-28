@@ -24,6 +24,6 @@ deploy:
   description: 'Sends a weather alert messages.'
   zip: ./lambda-weather-alert.jar
   environment:
-    - 'LATITUDE=33.70777628973998'
-    - 'LONGITUDE=-111.91360473632812'
-    - 'SNS_TOPIC=arn:aws:sns:us-east-1:106969650618:Cold_Weather_Warning'
+    - 'LATITUDE=$LATITUDE'
+    - 'LONGITUDE=$LONGITUDE'
+    - 'SNS_TOPIC=$SNS_TOPIC'
