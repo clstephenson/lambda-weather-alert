@@ -33,17 +33,35 @@ public class NWSSource implements WeatherSource {
         return getFutureTemperatureFromApi(ForecastTimePeriod.TODAY);
     }
 
+    @Override
+    public String getForecastForTodayAndTonight() {
+        Period todaysForecast = getForecastDataForPeriod(ForecastTimePeriod.TODAY);
+        Period tonightsForecast = getForecastDataForPeriod(ForecastTimePeriod.TONIGHT);
+        String formatHigh = "%s, High: %d, Wind: %s";
+        String formatLow = "%s, Low: %d, Wind: %s";
+
+        return new StringBuilder()
+                .append("Today: ").append(String.format(formatHigh, todaysForecast.getShortForecast(), todaysForecast.getTemperature(), todaysForecast.getWindSpeed()))
+                .append("\n\n")
+                .append("Tonight: ").append(String.format(formatLow, tonightsForecast.getShortForecast(), tonightsForecast.getTemperature(), tonightsForecast.getWindSpeed()))
+                .toString();
+    }
+
     private int getFutureTemperatureFromApi(ForecastTimePeriod timePeriod) {
+        Period period = getForecastDataForPeriod(timePeriod);
+        return period.getTemperature();
+    }
+
+    private Period getForecastDataForPeriod(ForecastTimePeriod timePeriod) {
         restClient = ClientBuilder.newClient();
         Point point = getPointDataFromAPI();
         Forecast forecast = getForecastDataFromAPI(point.getProperties().getForecast());
         List<Period> periodList = forecast.getProperties().getPeriods();
-        Period period = periodList
+        return periodList
                 .stream()
                 .filter(item -> item.getName().equalsIgnoreCase(timePeriod.toString()))
                 .findFirst()
                 .get();
-        return period.getTemperature();
     }
 
     private Point getPointDataFromAPI() {

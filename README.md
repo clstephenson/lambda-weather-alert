@@ -12,6 +12,8 @@ I created this small project as a learning exercise for myself, and it had three
 3. Use Travis CI to automatically build and deploy to AWS when changes are pushed to my GitHub repo.
 
 ## Description
-This little application is deployed to an AWS Lambda function. It runs each morning and reaches out to the weather.gov public API to get today's high temperature and tonights low. It then publishes a message to a specific topic on AWS SNS. That topic is configured to send a text message to subscribers (i.e. me).
+This little application is deployed to an AWS Lambda function. It runs each morning and reaches out to the weather.gov 
+public API to get the forecast for today and tonight. It then publishes a message to a specific topic on AWS SNS. 
+That topic is configured to send a text message to subscribers (i.e. me).
 
 ![System Architecture Diagram](https://clstephenson.s3-us-west-2.amazonaws.com/apps/lambda-weather-alert/lamda-weather-alert-diagram.png "System Architecture Diagram")

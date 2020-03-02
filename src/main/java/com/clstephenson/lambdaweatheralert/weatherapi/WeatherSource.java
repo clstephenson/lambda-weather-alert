@@ -5,4 +5,6 @@ public interface WeatherSource {
     int getLowTemperatureForTonight();
 
     int getHighTempForToday();
+
+    String getForecastForTodayAndTonight();
 }

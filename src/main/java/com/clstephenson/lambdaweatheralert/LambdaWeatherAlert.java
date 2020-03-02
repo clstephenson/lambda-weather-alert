@@ -36,9 +36,7 @@ public class LambdaWeatherAlert implements RequestHandler<ScheduledEvent, Void> 
      */
     public static void main(String[] args) {
         try {
-            int lowTemp = weatherSource.getLowTemperatureForTonight();
-            int highTemp = weatherSource.getHighTempForToday();
-            System.out.println(String.format(MESSAGE_TEXT, highTemp, lowTemp));
+            System.out.println(weatherSource.getForecastForTodayAndTonight());
         } catch (Exception e) {
             System.err.printf(ERROR_TEXT, e.getMessage());
             System.out.println();
@@ -58,11 +56,10 @@ public class LambdaWeatherAlert implements RequestHandler<ScheduledEvent, Void> 
         SnsMessagePublisher messagePublisher = SnsMessagePublisher.getPublisher(SnsTopicArn);
 
         try {
-            int lowTemp = weatherSource.getLowTemperatureForTonight();
-            int highTemp = weatherSource.getHighTempForToday();
+            String forecast = weatherSource.getForecastForTodayAndTonight();
 
             logger.log(String.format("Publishing message to SNS topic: %s", SnsTopicArn));
-            String messageId = messagePublisher.publish(String.format(MESSAGE_TEXT, highTemp, lowTemp));
+            String messageId = messagePublisher.publish(forecast);
             logger.log(String.format("SNS message ID: %s", messageId));
 
         } catch (SnsMessagePublisherException e) {
